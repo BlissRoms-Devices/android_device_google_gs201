@@ -30,6 +30,8 @@ BOARD_AVB_VBMETA_VENDOR_ROLLBACK_INDEX_LOCATION := 3
 AB_OTA_PARTITIONS += \
     vbmeta_vendor
 
+DISABLE_ARTIFACT_PATH_REQUIREMENTS := true
+
 # Reserve space for gapps install
 -include vendor/bliss/config/BoardConfigReservedSize.mk
 
