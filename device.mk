@@ -19,7 +19,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PROPERTY_OVERRIDES += vendor.debug.ssrdump.type=sscoredump
 
 # Modem
-ifneq ($(BOARD_WITHOUT_RADIO),true)
+ifneq ($(TARGET_IS_TABLET),true)
 PRODUCT_PACKAGES += dump_modem
 endif
 
@@ -84,7 +84,7 @@ PRODUCT_PRODUCT_PROPERTIES += \
 	persist.radio.reboot_on_modem_change=false
 
 # Configure DSDS by default
-ifneq ($(BOARD_WITHOUT_RADIO),true)
+ifneq ($(TARGET_IS_TABLET),true)
 PRODUCT_PRODUCT_PROPERTIES += \
 	persist.radio.multisim.config=dsds
 endif
@@ -98,7 +98,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	persist.vendor.ril.enable_set_screen_state=1
 
 # Set the Bluetooth Class of Device
-ifneq ($(USE_TABLET_BT_COD),true)
+ifneq ($(TARGET_IS_TABLET),true)
 # Service Field: 0x5A -> 90
 #    Bit 14: LE audio
 #    Bit 17: Networking
@@ -189,9 +189,6 @@ PRODUCT_VENDOR_PROPERTIES += \
 # b/295257834 Add HDR shaders to SurfaceFlinger's pre-warming cache
 PRODUCT_VENDOR_PROPERTIES += ro.surface_flinger.prime_shader_cache.ultrahdr=1
 
-DEVICE_PACKAGE_OVERLAYS += device/google/gs201/overlay
-DEVICE_PACKAGE_OVERLAYS += device/google/gs201/overlay-lineage
-
 # This device is shipped with 33 (Android T)
 PRODUCT_SHIPPING_API_LEVEL := 33
 
@@ -246,7 +243,7 @@ PRODUCT_COPY_FILES += \
 	frameworks/native/data/etc/android.hardware.sensor.stepcounter.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.sensor.stepcounter.xml \
 	frameworks/native/data/etc/android.hardware.sensor.stepdetector.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.sensor.stepdetector.xml
 # (See b/240652154)
-ifneq ($(DISABLE_SENSOR_BARO_PROX_HIFI),true)
+ifneq ($(TARGET_IS_TABLET),true)
 PRODUCT_COPY_FILES += \
 	frameworks/native/data/etc/android.hardware.sensor.barometer.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.sensor.barometer.xml \
 	frameworks/native/data/etc/android.hardware.sensor.hifi_sensors.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.sensor.hifi_sensors.xml \
@@ -267,7 +264,7 @@ PRODUCT_COPY_FILES += \
 	frameworks/native/data/etc/android.software.midi.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.software.midi.xml
 
 # eSIM MEP Feature
-ifneq ($(DISABLE_TELEPHONY_EUICC),true)
+ifneq ($(TARGET_IS_TABLET),true)
 PRODUCT_COPY_FILES += \
     frameworks/native/data/etc/android.hardware.telephony.euicc.mep.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/android.hardware.telephony.euicc.mep.xml
 endif
@@ -293,10 +290,6 @@ PRODUCT_PROPERTY_OVERRIDES += aaudio.hw_burst_min_usec=2000
 # Camera
 PRODUCT_SOONG_NAMESPACES += \
     hardware/google/camera
-
-# Connectivity
-PRODUCT_PACKAGES += \
-        ConnectivityOverlay
 
 # Storage health HAL
 PRODUCT_PACKAGES += \
@@ -330,7 +323,7 @@ PRODUCT_COPY_FILES += \
 	frameworks/native/data/etc/android.hardware.usb.accessory.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.usb.accessory.xml
 
 # (See b/239142680, b/211840489, b/225749853)
-ifneq ($(DISABLE_CAMERA_FS_AF),true)
+ifneq ($(TARGET_IS_TABLET),true)
 PRODUCT_COPY_FILES += \
 	frameworks/native/data/etc/android.hardware.camera.flash-autofocus.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.camera.flash-autofocus.xml
 else
@@ -404,10 +397,10 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += vendor.hwc.dpp.downscale=2
 PRODUCT_PROPERTY_OVERRIDES += \
 	ro.vendor.ddk.set.afbc=1
 
-ifeq ($(USE_TABLET_BT_COD),true)
-PRODUCT_CHARACTERISTICS := nosdcard,tablet
-else
+ifneq ($(TARGET_IS_TABLET),true)
 PRODUCT_CHARACTERISTICS := nosdcard
+else
+PRODUCT_CHARACTERISTICS := nosdcard,tablet
 endif
 
 PRODUCT_PACKAGES += hostapd
@@ -450,9 +443,6 @@ PRODUCT_PRODUCT_PROPERTIES += \
 	persist.bluetooth.bqr.event_mask?=30 \
 	persist.bluetooth.bqr.min_interval_ms=500
 
-PRODUCT_ENFORCE_RRO_TARGETS := \
-	framework-res
-
 # Dynamic Partitions
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
@@ -480,7 +470,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
 	Iwlan
 
-ifneq ($(BOARD_WITHOUT_RADIO),true)
+ifneq ($(TARGET_IS_TABLET),true)
 # CP Logging properties
 PRODUCT_PROPERTY_OVERRIDES += \
 	ro.vendor.sys.modem.logging.loc = /data/vendor/slog \
@@ -632,10 +622,44 @@ PRODUCT_PRODUCT_PROPERTIES += \
 PRODUCT_COPY_FILES += \
     device/google/gs201/allowlist_com.google.android.as.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/sysconfig/allowlist_com.google.android.as.xml
 
+# ANGLE - Almost Native Graphics Layer Engine
+PRODUCT_PACKAGES += \
+    ANGLE
+
+# Bluetooth
+PRODUCT_PACKAGES += \
+    android.hardware.bluetooth.prebuilt.xml \
+    android.hardware.bluetooth_le.prebuilt.xml
+
 # Camera
 PRODUCT_PRODUCT_PROPERTIES += \
     ro.vendor.camera.extensions.package=com.google.android.apps.camera.services \
     ro.vendor.camera.extensions.service=com.google.android.apps.camera.services.extensions.service.PixelExtensions
+
+# Device features
+ifneq ($(TARGET_IS_TABLET),true)
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/handheld_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/handheld_core_hardware.xml
+else
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/tablet_core_hardware.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/tablet_core_hardware.xml
+endif
+
+# EUICC
+ifneq ($(TARGET_IS_TABLET),true)
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.telephony.euicc.xml:$(TARGET_COPY_OUT_PRODUCT)/etc/permissions/android.hardware.telephony.euicc.xml
+endif
+
+# Fingerprint
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.fingerprint.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.fingerprint.xml
+
+# GNSS
+ifneq ($(TARGET_IS_TABLET),true)
+PRODUCT_PACKAGES += \
+    android.hardware.sensors-V2-ndk.vendor:64
+endif
 
 # Lineage Health
 include hardware/google/pixel/lineage_health/device.mk
@@ -648,6 +672,57 @@ $(call soong_config_set_bool,lineage_health,charging_control_supports_toggle,fal
 PRODUCT_VENDOR_LINKER_CONFIG_FRAGMENTS += \
     device/google/gs201/linker.config.json
 
+# NFC
+ifneq ($(TARGET_IS_TABLET),true)
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.nfc.ese.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.nfc.ese.xml \
+    frameworks/native/data/etc/android.hardware.nfc.hce.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.nfc.hce.xml \
+    frameworks/native/data/etc/android.hardware.nfc.hcef.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.nfc.hcef.xml \
+    frameworks/native/data/etc/android.hardware.nfc.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.nfc.xml \
+    frameworks/native/data/etc/com.nxp.mifare.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/com.nxp.mifare.xml
+
+PRODUCT_PACKAGES += \
+    android.hardware.nfc-service.st
+endif
+
+# Overlays
+PRODUCT_PACKAGES += \
+    EuiccSupportPixelOverlay \
+    FrameworkResOverlayProductGs201 \
+    FrameworkResOverlayVendorGs201 \
+    GlanceableHubConfigOverlay \
+    GlanceableHubSettingsConfigOverlay \
+    GlanceableHubSettingsConfigOverlay2022 \
+    GlanceableHubSysuiConfigOverlay \
+    GoogleConfigOverlay \
+    GooglePermissionControllerSafetyCenterOverlay \
+    PixelConfigOverlay2019 \
+    PixelConfigOverlay2021 \
+    PixelConfigOverlayCommon \
+    PixelConnectivityOverlay2023_midyear \
+    PixelNfcOverlayCommon \
+    PixelTetheringOverlay2021 \
+    SettingsGoogleOverlayProductGs201 \
+    SettingsProviderOverlayProductGs201 \
+    SystemUIGoogleOverlayProductGs201 \
+    SystemUIGoogleOverlayVendorGs201 \
+    TeleServiceOverlayProductGs201 \
+    TeleServiceOverlayVendorGs201 \
+    TelecomOverlayProductGs201 \
+    TelephonyProviderOverlayProductGs201
+
+ifneq ($(TARGET_IS_TABLET),true)
+PRODUCT_PACKAGES += \
+    LineageSdkOverlayGs201 \
+    SettingsOverlayGs201
+endif
+
+PRODUCT_PACKAGES += \
+    FrameworkResOverlayLineageGs201 \
+    LineageSdkOverlayRestartGs201 \
+    SettingsOverlayBatteryGs201 \
+    SimpleDeviceConfigOverlayGs201
+
 # Parts
 PRODUCT_PACKAGES += \
     GoogleParts
@@ -656,9 +731,20 @@ PRODUCT_PACKAGES += \
 TARGET_PRODUCT_PROP += device/google/gs201/product.prop
 TARGET_SYSTEM_EXT_PROP += device/google/gs201/system_ext.prop
 
-# Tethering
+# SecureElement
+ifneq ($(TARGET_IS_TABLET),true)
+PRODUCT_COPY_FILES += \
+    frameworks/native/data/etc/android.hardware.se.omapi.ese.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.se.omapi.ese.xml \
+    frameworks/native/data/etc/android.hardware.se.omapi.uicc.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/android.hardware.se.omapi.uicc.xml
+
 PRODUCT_PACKAGES += \
-    TetheringOverlay
+    android.hardware.secure_element@1.2-service-gto \
+    android.hardware.secure_element@1.2-service-gto-ese2
+endif
+
+# Sensors
+PRODUCT_PACKAGES += \
+    sensors.dynamic_sensor_hal
 
 # Touch
 include hardware/google/pixel/touch/device.mk
