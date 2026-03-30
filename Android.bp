@@ -5,6 +5,7 @@ soong_namespace {
     ],
 }
 
+
 package {
     default_applicable_licenses: ["device_google_gs201_license"],
 }

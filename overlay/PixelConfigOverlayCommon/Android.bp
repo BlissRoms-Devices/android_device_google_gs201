@@ -6,4 +6,8 @@
 runtime_resource_overlay {
     name: "PixelConfigOverlayCommon",
     product_specific: true,
+    enabled: select(soong_config_variable("bliss", "with_gms"), {
+        "true": false,
+        default: true,
+    }),
 }
